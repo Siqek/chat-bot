@@ -1,0 +1,25 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/rest": "^1.7.1",
+    "discord.js": "^14.11.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Siqek/discord-bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Siqek/discord-bot/issues"
+  },
+  "homepage": "https://github.com/Siqek/discord-bot#readme"
+}
