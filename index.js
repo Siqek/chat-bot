@@ -1,7 +1,6 @@
 const { Client, Events, GatewayIntentBits, Routes } = require('discord.js');
 const { token, CLIENT_ID, GUILD_ID, URL } = require('./config.json');
 const { REST } = require('@discordjs/rest');
-const funs = require('./functions.js');
 
 const timeTable = [
 	{	name: '1. 8:00-8:45', value: '1'},
@@ -23,7 +22,7 @@ const daysTable = [
 	{	name: 'środa', value: '3'},
 	{	name: 'czwartek', value: '4'},
 	{	name: 'piątek', value: '5'}
-]
+];
 
 const client = new Client({ 
 	intents: [
@@ -44,11 +43,11 @@ client.once(Events.ClientReady, c => {
 client.on('interactionCreate', (async (interaction) => {
 	if (!interaction.isChatInputCommand()) return;
 	if (interaction.user.bot) return;
-	//console.log(interaction)
 
 	if (interaction.commandName == 'test') {
 		interaction.reply({ content: 'hi! ' + interaction.options.data[0].value});
 	};
+
 	if (interaction.commandName == 'n') {
 		let hour = '';
 		let day = '';
@@ -58,7 +57,7 @@ client.on('interactionCreate', (async (interaction) => {
 		let actualTime = getTime();
 		let actualLesson = getLesson();
 
-		teacherName = `?nauczyciel=${interaction.options.data[0].value}` //statement if is useless / teacher name parameter is required
+		teacherName = `?nauczyciel=${interaction.options.data[0].value}`;
 		if (interaction.options.data[1]) {
 			if (interaction.options.data[1].name!='godzina') {
 				hour = `&czas=${actualLesson.lesson}`;
@@ -69,7 +68,7 @@ client.on('interactionCreate', (async (interaction) => {
 				if (interaction.options.data[2]) {
 					day = `&day=${interaction.options.data[2].value}`;
 					numDay = interaction.options.data[2].value-1;
-				}
+				};
 			};
 		} else {
 			hour = `&czas=${actualLesson.lesson}`;
@@ -89,16 +88,63 @@ client.on('interactionCreate', (async (interaction) => {
 					`klasa: ${json[0].klasa}\n`,
 					`sala: ${json[0].sala}\n`,
 					`znaleziono dane na ${daysTable[numDay].name}, lekcja ${timeTable[numHour].name}`
-				]
+				];
 				interaction.reply({ content: reply.join('')});
 			};
 		} catch (err) {
 			console.log(err);
 			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
 		};
+	};
 
-		
-	}
+	if (interaction.commandName == 's') {
+		let hour = '';
+		let day = '';
+		let classNum = ''; // this variables and statement if -> function -> return -> hour & day
+		let numHour = 0; // &czas= -> fetch
+		let numDay = 0;
+		let actualTime = getTime();
+		let actualLesson = getLesson();
+
+		classNum = `?sala=${interaction.options.data[0].value}`;
+		if (interaction.options.data[1]) {
+			if (interaction.options.data[1].name!='godzina') {
+				hour = `&czas=${actualLesson.lesson}`;
+				day = `&day=${interaction.options.data[1].value}`;
+				numDay = interaction.options.data[1].value-1;
+			} else {
+				hour = `&czas=${interaction.options.data[1].value}`;
+				if (interaction.options.data[2]) {
+					day = `&day=${interaction.options.data[2].value}`;
+					numDay = interaction.options.data[2].value-1;
+				};
+			};
+		} else {
+			hour = `&czas=${actualLesson.lesson}`;
+			numHour = actualTime.lesson;
+			day = `&day=${actualTime.day}`;
+			numDay = actualTime.day;
+		};
+
+		try {
+			const data = await fetch(`${URL}${classNum}${hour}${day}`);
+			const json = await data.json();
+			if (!json.length) {
+				interaction.reply({ content: 'w sali nie ma lekcji'});
+			} else {
+				let reply = [
+					`nauczyciel: ${json[0].nauczyciel}\n`,
+					`klasa: ${json[0].klasa}\n`,
+					`sala: ${json[0].sala}\n`,
+					`znaleziono dane na ${daysTable[numDay].name}, lekcja ${timeTable[numHour].name}`
+				];
+				interaction.reply({ content: reply.join('')});
+			};
+		} catch (err) {
+			console.log(err);
+			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
+		};
+	};
 }));
 
 async function main() {
@@ -123,6 +169,32 @@ async function main() {
 				{
 					name: 'nauczyciel',
 					description: 'imię i nazwisko lub skrót nauczycziela',
+					type: 3,
+					required: true
+				},
+				{
+					name: 'godzina',
+					description: 'godzina lekcyjna, która cię interesuje',
+					type: 3,
+					required: false,
+					choices: timeTable
+				},
+				{
+					name: 'dzień',
+					description: 'dzień, który cię interesuje',
+					type: 3,
+					required: false,
+					choices: daysTable
+				}
+			]
+		},
+		{
+			name: 's',
+			description: 'polecenie wyświetli informacje o sali',
+			options: [
+				{
+					name: 'sala',
+					description: 'numer sali',
 					type: 3,
 					required: true
 				},
