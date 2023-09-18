@@ -53,15 +53,45 @@ client.on('interactionCreate', (async (interaction) => {
 		let hour = '';
 		let day = '';
 		let teacherName = '';
+		let numHour = 0;
+		let numDay = 0;
+		let actualTime = getTime();
+		let actualLesson = getLesson();
 
-		if (interaction.options.data[0]) teacherName = `?nauczyciel=${interaction.options.data[0].value}`
-		if (interaction.options.data[1]) hour = `&czas=${interaction.options.data[1].value}`
-		if (interaction.options.data[2]) day = `&day=${interaction.options.data[2].value}`
+		teacherName = `?nauczyciel=${interaction.options.data[0].value}` //statement if is useless / teacher name parameter is required
+		if (interaction.options.data[1]) {
+			if (interaction.options.data[1].name!='godzina') {
+				hour = `&czas=${actualLesson.lesson}`;
+				day = `&day=${interaction.options.data[1].value}`;
+				numDay = interaction.options.data[1].value-1;
+			} else {
+				hour = `&czas=${interaction.options.data[1].value}`;
+				if (interaction.options.data[2]) {
+					day = `&day=${interaction.options.data[2].value}`;
+					numDay = interaction.options.data[2].value-1;
+				}
+			};
+		} else {
+			hour = `&czas=${actualLesson.lesson}`;
+			numHour = actualTime.lesson;
+			day = `&day=${actualTime.day}`;
+			numDay = actualTime.day;
+		};
 
 		try {
 			const data = await fetch(`${URL}${teacherName}${hour}${day}`);
-			const json = await data.json()
-			interaction.reply({ content: `nauczyciel: ${json[0].nauczyciel}\nklasa: ${json[0].klasa}\nsala: ${json[0].sala}`});
+			const json = await data.json();
+			if (!json.length) {
+				interaction.reply({ content: 'nauczycziel nie ma lekcji'})	;
+			} else {
+				let reply = [
+					`nauczyciel: ${json[0].nauczyciel}\n`,
+					`klasa: ${json[0].klasa}\n`,
+					`sala: ${json[0].sala}\n`,
+					`znaleziono dane na ${daysTable[numDay].name}, lekcja ${timeTable[numHour].name}`
+				]
+				interaction.reply({ content: reply.join('')});
+			};
 		} catch (err) {
 			console.log(err);
 			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
@@ -124,4 +154,37 @@ async function main() {
 	};
 };
 
-main();
+//main();
+
+function getTime () {
+	const date = new Date();
+	let day = date.getDay();
+	let hour = date.getHours();
+	let minute = date.getMinutes();
+
+	return { day: day, hour: hour, minute: minute };
+};
+
+function getLesson () {
+	const lessons = [[0, 0], [8, 45], [9, 40], [10, 35], [11, 30], [12, 25], [13, 15], [14, 30], [15, 20], [16, 15], [17, 10], [18, 5]];
+
+	let time = getTime();
+	let minutes = time.minute + (time.hour * 60);
+
+	for (let i=0; i<=lessons.length-2; i++) {
+		let mins = (lessons[i][0] * 60) + lessons[i][1];
+		let mins2 = (lessons[i+1][0] * 60) + lessons[i+1][1];
+		if (minutes >= mins && minutes < mins2) {
+			let h = lessons[i+1][0];
+			let min = lessons[i+1][1];
+			if ( min >= 45) {
+				min -= 45;
+			}	else {
+				h--;
+				min = 60 + (min - 45);
+			}
+			return { lesson : i+1, time : `${timeTable[i].name}` };
+		};
+	};
+	return 'no lessons';
+};
