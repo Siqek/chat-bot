@@ -1,7 +1,7 @@
 const { Client, Events, GatewayIntentBits, Routes } = require('discord.js');
 const { token, CLIENT_ID, GUILD_ID, URL } = require('./config.json');
 const { REST } = require('@discordjs/rest');
-//import './functions.js'
+const funs = require('./functions.js');
 
 const timeTable = [
 	{	name: '1. 8:00-8:45', value: '1'},
@@ -82,7 +82,7 @@ client.on('interactionCreate', (async (interaction) => {
 			const data = await fetch(`${URL}${teacherName}${hour}${day}`);
 			const json = await data.json();
 			if (!json.length) {
-				interaction.reply({ content: 'nauczycziel nie ma lekcji'})	;
+				interaction.reply({ content: 'nauczycziel nie ma lekcji'});
 			} else {
 				let reply = [
 					`nauczyciel: ${json[0].nauczyciel}\n`,
