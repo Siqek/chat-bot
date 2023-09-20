@@ -87,7 +87,7 @@ client.on('interactionCreate', (async (interaction) => {
 					`nauczyciel: ${json[0].nauczyciel}\n`,
 					`klasa: ${json[0].klasa}\n`,
 					`sala: ${json[0].sala}\n`,
-					`znaleziono dane na ${daysTable[numDay].name}, lekcja ${timeTable[numHour].name}`
+					`znaleziono dane na ${daysTable[numDay-1].name}, lekcja ${timeTable[numHour-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
 			};
@@ -136,7 +136,7 @@ client.on('interactionCreate', (async (interaction) => {
 					`nauczyciel: ${json[0].nauczyciel}\n`,
 					`klasa: ${json[0].klasa}\n`,
 					`sala: ${json[0].sala}\n`,
-					`znaleziono dane na ${daysTable[numDay].name}, lekcja ${timeTable[numHour].name}`
+					`znaleziono dane na ${daysTable[numDay-1].name}, lekcja ${timeTable[numHour-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
 			};
