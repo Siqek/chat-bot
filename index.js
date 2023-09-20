@@ -150,18 +150,18 @@ client.on('interactionCreate', (async (interaction) => {
 async function main() {
 
 	const commands = [
-		{
-			name: 'test',
-			description: 'just test command',
-			options: [
-				{
-					name: "testowy",
-					description: "test argsów",
-					type: 3,
-					required: true,
-				},
-			],
-		},
+		// {
+		// 	name: 'test',
+		// 	description: 'just test command',
+		// 	options: [
+		// 		{
+		// 			name: "testowy",
+		// 			description: "test argsów",
+		// 			type: 3,
+		// 			required: true,
+		// 		}
+		// 	]
+		// },
 		{
 			name: 'n',
 			description: 'polecenie wyświetla informacje o nauczycielu',
@@ -217,10 +217,11 @@ async function main() {
 	];
 
 	try {
-		await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {	body: []	}); //delete all commands
-		await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {	body: commands	}); //deploy commands
-		//await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: []	}); //delete all global commands
-		//await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands	}); //deploy global commands
+		//can deploy only global or guild command in a time
+		//await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {	body: []	}); //delete all commands
+		//await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {	body: commands	}); //deploy commands
+		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: []	}); //delete all global commands
+		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands	}); //deploy global commands
 	} catch (err) {
 		console.log(err);
 	};
