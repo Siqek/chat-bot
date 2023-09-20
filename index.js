@@ -72,7 +72,7 @@ client.on('interactionCreate', (async (interaction) => {
 			};
 		} else {
 			hour = `&czas=${actualLesson.lesson}`;
-			numHour = actualTime.lesson;
+			numHour = actualLesson.lesson;
 			day = `&day=${actualTime.day}`;
 			numDay = actualTime.day;
 		};
@@ -121,7 +121,7 @@ client.on('interactionCreate', (async (interaction) => {
 			};
 		} else {
 			hour = `&czas=${actualLesson.lesson}`;
-			numHour = actualTime.lesson;
+			numHour = actualLesson.lesson;
 			day = `&day=${actualTime.day}`;
 			numDay = actualTime.day;
 		};
