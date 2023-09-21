@@ -1,5 +1,5 @@
 const { Client, Events, GatewayIntentBits, Routes } = require('discord.js');
-const { token, CLIENT_ID, GUILD_ID, URL } = require('./config.json');
+const { token, CLIENT_ID, URL } = require('./config.json');
 const { REST } = require('@discordjs/rest');
 
 const timeTable = [
@@ -47,12 +47,16 @@ client.on('interactionCreate', (async (interaction) => {
 	if (interaction.commandName == 'n') {
 		let params = interaction.options.data;
 		let time =fillData(params);
-		let hour = time.hour;
+		let lesson = time.lesson;
 		let day = time.day;
 		let teacherName = params[0].value;
 
 		try {
-			const data = await fetch(`${URL}?nauczyciel=${teacherName}&czas=${hour}&day=${day}`);
+			if ((whatTime().hour >= 18 && whatTime().hour >= 5) && !(params[1])) {
+				interaction.reply({ content: 'nie ma już zajęć'});
+				return;
+			};
+			const data = await fetch(`${URL}?nauczyciel=${teacherName}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
 				interaction.reply({ content: 'nauczycziel nie ma lekcji'});
@@ -61,7 +65,7 @@ client.on('interactionCreate', (async (interaction) => {
 					`nauczyciel: **${json[0].nauczyciel}**\n`,
 					`klasa: **${json[0].klasa}**\n`,
 					`sala: **${json[0].sala}**\n`,
-					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[hour-1].name}`
+					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
 			};
@@ -74,19 +78,16 @@ client.on('interactionCreate', (async (interaction) => {
 	if (interaction.commandName == 's') {
 		let params = interaction.options.data;
 		let time =fillData(params);
-		let hour = time.hour;
+		let lesson = time.lesson;
 		let day = time.day;
 		let classNum = params[0].value;
-
-		// SyntaxError: Unexpected token < in JSON at position 0
-    	// 	at JSON.parse (<anonymous>)
-    	// 	at packageData (node:internal/deps/undici/undici:6370:23)
-    	// 	at specConsumeBody (node:internal/deps/undici/undici:6348:14)
-    	// 	at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-    	// 	at async Client.<anonymous> (C:\Users\48510\Desktop\chat-bot\index.js:56:17)
 		
 		try {
-			const data = await fetch(`${URL}?sala=${classNum}&czas=${hour}&day=${day}`);
+			if ((whatTime().hour >= 18 && whatTime().hour >= 5) && !(params[1])) {
+				interaction.reply({ content: 'nie ma już zajęć'});
+				return;
+			};
+			const data = await fetch(`${URL}?sala=${classNum}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
 				interaction.reply({ content: 'w sali nie ma lekcji'});
@@ -95,7 +96,7 @@ client.on('interactionCreate', (async (interaction) => {
 					`nauczyciel: **${json[0].nauczyciel}**\n`,
 					`klasa: **${json[0].klasa}**\n`,
 					`sala: **${json[0].sala}**\n`,
-					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[hour-1].name}`
+					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
 			};
@@ -164,9 +165,6 @@ async function main() {
 	];
 
 	try {
-		//can deploy only global or guild command in a time
-		//await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {	body: []	}); //delete all commands
-		//await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {	body: commands	}); //deploy commands
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: []	}); //delete all global commands
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands	}); //deploy global commands
 	} catch (err) {
@@ -211,16 +209,16 @@ function whichLesson () {
 
 function fillData (params) {
 	let day = whatTime().day;
-	let hour = whichLesson().lesson;
+	let lesson = whichLesson().lesson;
 
 	if (params[1]) {
 		if (params[1].name == 'godzina') {
-			hour = params[1].value;
+			lesson = params[1].value;
 			if (params[2]) {
 				day = params[2].value;
 			};
 		};
 	};
 
-	return { day: day, hour: hour};
+	return { day: day, lesson: lesson};
 };
