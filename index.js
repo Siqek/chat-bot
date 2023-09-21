@@ -44,50 +44,24 @@ client.on('interactionCreate', (async (interaction) => {
 	if (!interaction.isChatInputCommand()) return;
 	if (interaction.user.bot) return;
 
-	if (interaction.commandName == 'test') {
-		interaction.reply({ content: 'hi! ' + interaction.options.data[0].value});
-	};
-
 	if (interaction.commandName == 'n') {
-		let hour = '';
-		let day = '';
-		let teacherName = '';
-		let numHour = 0;
-		let numDay = 0;
-		let actualTime = getTime();
-		let actualLesson = getLesson();
-
-		teacherName = `?nauczyciel=${interaction.options.data[0].value}`;
-		if (interaction.options.data[1]) {
-			if (interaction.options.data[1].name!='godzina') {
-				hour = `&czas=${actualLesson.lesson}`;
-				day = `&day=${interaction.options.data[1].value}`;
-				numDay = interaction.options.data[1].value-1;
-			} else {
-				hour = `&czas=${interaction.options.data[1].value}`;
-				if (interaction.options.data[2]) {
-					day = `&day=${interaction.options.data[2].value}`;
-					numDay = interaction.options.data[2].value-1;
-				};
-			};
-		} else {
-			hour = `&czas=${actualLesson.lesson}`;
-			numHour = actualLesson.lesson;
-			day = `&day=${actualTime.day}`;
-			numDay = actualTime.day;
-		};
+		let params = interaction.options.data;
+		let time =fillData(params);
+		let hour = time.hour;
+		let day = time.day;
+		let teacherName = params[0].value;
 
 		try {
-			const data = await fetch(`${URL}${teacherName}${hour}${day}`);
+			const data = await fetch(`${URL}?nauczyciel=${teacherName}&czas=${hour}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
 				interaction.reply({ content: 'nauczycziel nie ma lekcji'});
 			} else {
 				let reply = [
-					`nauczyciel: ${json[0].nauczyciel}\n`,
-					`klasa: ${json[0].klasa}\n`,
-					`sala: ${json[0].sala}\n`,
-					`znaleziono dane na ${daysTable[numDay-1].name}, lekcja ${timeTable[numHour-1].name}`
+					`nauczyciel: **${json[0].nauczyciel}**\n`,
+					`klasa: **${json[0].klasa}**\n`,
+					`sala: **${json[0].sala}**\n`,
+					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[hour-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
 			};
@@ -98,45 +72,30 @@ client.on('interactionCreate', (async (interaction) => {
 	};
 
 	if (interaction.commandName == 's') {
-		let hour = '';
-		let day = '';
-		let classNum = ''; // this variables and statement if -> function -> return -> hour & day
-		let numHour = 0; // &czas= -> fetch
-		let numDay = 0;
-		let actualTime = getTime();
-		let actualLesson = getLesson();
+		let params = interaction.options.data;
+		let time =fillData(params);
+		let hour = time.hour;
+		let day = time.day;
+		let classNum = params[0].value;
 
-		classNum = `?sala=${interaction.options.data[0].value}`;
-		if (interaction.options.data[1]) {
-			if (interaction.options.data[1].name!='godzina') {
-				hour = `&czas=${actualLesson.lesson}`;
-				day = `&day=${interaction.options.data[1].value}`;
-				numDay = interaction.options.data[1].value-1;
-			} else {
-				hour = `&czas=${interaction.options.data[1].value}`;
-				if (interaction.options.data[2]) {
-					day = `&day=${interaction.options.data[2].value}`;
-					numDay = interaction.options.data[2].value-1;
-				};
-			};
-		} else {
-			hour = `&czas=${actualLesson.lesson}`;
-			numHour = actualLesson.lesson;
-			day = `&day=${actualTime.day}`;
-			numDay = actualTime.day;
-		};
-
+		// SyntaxError: Unexpected token < in JSON at position 0
+    	// 	at JSON.parse (<anonymous>)
+    	// 	at packageData (node:internal/deps/undici/undici:6370:23)
+    	// 	at specConsumeBody (node:internal/deps/undici/undici:6348:14)
+    	// 	at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    	// 	at async Client.<anonymous> (C:\Users\48510\Desktop\chat-bot\index.js:56:17)
+		
 		try {
-			const data = await fetch(`${URL}${classNum}${hour}${day}`);
+			const data = await fetch(`${URL}?sala=${classNum}&czas=${hour}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
 				interaction.reply({ content: 'w sali nie ma lekcji'});
 			} else {
 				let reply = [
-					`nauczyciel: ${json[0].nauczyciel}\n`,
-					`klasa: ${json[0].klasa}\n`,
-					`sala: ${json[0].sala}\n`,
-					`znaleziono dane na ${daysTable[numDay-1].name}, lekcja ${timeTable[numHour-1].name}`
+					`nauczyciel: **${json[0].nauczyciel}**\n`,
+					`klasa: **${json[0].klasa}**\n`,
+					`sala: **${json[0].sala}**\n`,
+					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[hour-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
 			};
@@ -150,18 +109,6 @@ client.on('interactionCreate', (async (interaction) => {
 async function main() {
 
 	const commands = [
-		// {
-		// 	name: 'test',
-		// 	description: 'just test command',
-		// 	options: [
-		// 		{
-		// 			name: "testowy",
-		// 			description: "test argsów",
-		// 			type: 3,
-		// 			required: true,
-		// 		}
-		// 	]
-		// },
 		{
 			name: 'n',
 			description: 'polecenie wyświetla informacje o nauczycielu',
@@ -229,7 +176,7 @@ async function main() {
 
 //main();
 
-function getTime () {
+function whatTime () {
 	const date = new Date();
 	let day = date.getDay();
 	let hour = date.getHours();
@@ -238,10 +185,10 @@ function getTime () {
 	return { day: day, hour: hour, minute: minute };
 };
 
-function getLesson () {
+function whichLesson () {
 	const lessons = [[0, 0], [8, 45], [9, 40], [10, 35], [11, 30], [12, 25], [13, 15], [14, 30], [15, 20], [16, 15], [17, 10], [18, 5]];
 
-	let time = getTime();
+	let time = whatTime();
 	let minutes = time.minute + (time.hour * 60);
 
 	for (let i=0; i<=lessons.length-2; i++) {
@@ -260,4 +207,20 @@ function getLesson () {
 		};
 	};
 	return 'no lessons';
+};
+
+function fillData (params) {
+	let day = whatTime().day;
+	let hour = whichLesson().lesson;
+
+	if (params[1]) {
+		if (params[1].name == 'godzina') {
+			hour = params[1].value;
+			if (params[2]) {
+				day = params[2].value;
+			};
+		};
+	};
+
+	return { day: day, hour: hour};
 };
