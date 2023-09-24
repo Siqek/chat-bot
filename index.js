@@ -25,22 +25,23 @@ const daysTable = [
 ];
 
 var teachersTab = [];
-// getTeachers();
+getTeachers();
 
-// async function getTeachers () {
-// 	try {
-// 		const data = await fetch(`${URL}nauczyciele`);
-// 		const json = await data.json();
-// 		let teachers = []
-// 		Object.keys(json).forEach(element => {
-// 			if (!json[element].includes('vacat')) teachers.push( { name: json[element], value: element });
-// 		});
-// 		teachersTab = teachers;
-// 		main();
-// 	} catch (err) {
-// 		console.log(err);
-// 	};
-// };
+async function getTeachers () {
+	try {
+		const data = await fetch(`${URL}nauczyciele`);
+		const json = await data.json();
+		let teachers = []
+		let i = 0;
+		Object.keys(json).forEach(element => {
+			if (!json[element].includes('vacat') && i <= 24) teachers.push( { name: `${json[element]} (${element})`, value: `${element}` });
+			i++; //moze byc maksymalnie 25 wyborow w jednym poleceniu//
+		});
+		teachersTab = teachers;
+	} catch (err) {
+		console.log(err);
+	};
+};
 
 const client = new Client({ 
 	intents: [
@@ -70,7 +71,7 @@ client.on('interactionCreate', (async (interaction) => {
 		let teacherName = params[0].value;
 
 		try {
-			if ((whatTime().hour >= 18 && whatTime().hour >= 5) && !(params[1])) {
+			if (whichLesson() === 'no lessons') {
 				interaction.reply({ content: 'nie ma już zajęć'});
 				return;
 			};
@@ -106,7 +107,7 @@ client.on('interactionCreate', (async (interaction) => {
 		let classNum = params[0].value;
 		
 		try {
-			if ((whatTime().hour >= 18 && whatTime().hour >= 5) && !(params[1])) {
+			if (whichLesson() === 'no lessons') {
 				interaction.reply({ content: 'nie ma już zajęć'});
 				return;
 			};
@@ -193,6 +194,7 @@ async function main() {
 	];
 
 	try {
+		await getTeachers();
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: [] }); //delete all global commands
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands }); //deploy global commands
 	} catch (err) {
@@ -200,7 +202,7 @@ async function main() {
 	};
 };
 
-//main();
+main();
 
 function whatTime () {
 	const date = new Date();
