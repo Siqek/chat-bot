@@ -38,6 +38,7 @@ async function getTeachers () {
 			i++; //moze byc maksymalnie 25 wyborow w jednym poleceniu//
 		});
 		teachersTab = teachers;
+		main();
 	} catch (err) {
 		console.log(err);
 	};
@@ -194,15 +195,12 @@ async function main() {
 	];
 
 	try {
-		await getTeachers();
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: [] }); //delete all global commands
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands }); //deploy global commands
 	} catch (err) {
 		console.log(err);
 	};
 };
-
-main();
 
 function whatTime () {
 	const date = new Date();
