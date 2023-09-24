@@ -24,6 +24,24 @@ const daysTable = [
 	{	name: 'piątek', value: '5'}
 ];
 
+var teachersTab = [];
+// getTeachers();
+
+// async function getTeachers () {
+// 	try {
+// 		const data = await fetch(`${URL}nauczyciele`);
+// 		const json = await data.json();
+// 		let teachers = []
+// 		Object.keys(json).forEach(element => {
+// 			if (!json[element].includes('vacat')) teachers.push( { name: json[element], value: element });
+// 		});
+// 		teachersTab = teachers;
+// 		main();
+// 	} catch (err) {
+// 		console.log(err);
+// 	};
+// };
+
 const client = new Client({ 
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -61,10 +79,15 @@ client.on('interactionCreate', (async (interaction) => {
 			if (!json.length) {
 				interaction.reply({ content: 'nauczycziel nie ma lekcji'});
 			} else {
+				let klasy = '';
+				for (let i=0; i<=json[0].klasa.length-1; i++) {
+					klasy += `${json[0].klasa[i]} `;
+				};
 				let reply = [
 					`nauczyciel: **${json[0].nauczyciel}**\n`,
-					`klasa: **${json[0].klasa}**\n`,
+					`klasa: **${klasy}**\n`,
 					`sala: **${json[0].sala}**\n`,
+					`przedmiot: **${json[0].lekcja}**\n`,
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
@@ -92,10 +115,15 @@ client.on('interactionCreate', (async (interaction) => {
 			if (!json.length) {
 				interaction.reply({ content: 'w sali nie ma lekcji'});
 			} else {
+				let klasy = '';
+				for (let i=0; i<=json[0].klasa.length-1; i++) {
+					klasy += `${json[0].klasa[i]} `;
+				};
 				let reply = [
 					`nauczyciel: **${json[0].nauczyciel}**\n`,
-					`klasa: **${json[0].klasa}**\n`,
+					`klasa: **${klasy}**\n`,
 					`sala: **${json[0].sala}**\n`,
+					`przedmiot: **${json[0].lekcja}**\n`,
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
@@ -108,7 +136,6 @@ client.on('interactionCreate', (async (interaction) => {
 }));
 
 async function main() {
-
 	const commands = [
 		{
 			name: 'n',
@@ -118,7 +145,8 @@ async function main() {
 					name: 'nauczyciel',
 					description: 'imię i nazwisko lub skrót nauczycziela',
 					type: 3,
-					required: true
+					required: true,
+					choices: teachersTab
 				},
 				{
 					name: 'godzina',
@@ -165,8 +193,8 @@ async function main() {
 	];
 
 	try {
-		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: []	}); //delete all global commands
-		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands	}); //deploy global commands
+		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: [] }); //delete all global commands
+		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands }); //deploy global commands
 	} catch (err) {
 		console.log(err);
 	};
