@@ -71,7 +71,7 @@ client.on('interactionCreate', (async (interaction) => {
 		let teacherName = params[0].value;
 
 		try {
-			if (whichLesson() === 'no lessons') {
+			if (whichLesson() === 'no lessons' && !(params[1])) {
 				interaction.reply({ content: 'nie ma już zajęć'});
 				return;
 			};
@@ -107,7 +107,7 @@ client.on('interactionCreate', (async (interaction) => {
 		let classNum = params[0].value;
 		
 		try {
-			if (whichLesson() === 'no lessons') {
+			if (whichLesson() === 'no lessons' && !(params[1])) {
 				interaction.reply({ content: 'nie ma już zajęć'});
 				return;
 			};
