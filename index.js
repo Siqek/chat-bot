@@ -34,11 +34,11 @@ async function getTeachers () {
 		let teachers = []
 		let i = 0;
 		Object.keys(json).forEach(element => {
-			if (!json[element].includes('vacat') && i <= 24) teachers.push( { name: `${json[element]} (${element})`, value: `${element}` });
+			if (!json[element].includes('vacat') && i <= 24) teachers.push( { name: `${json[element]} (${element})`, value: `${json[element]}` });
 			i++; //moze byc maksymalnie 25 wyborow w jednym poleceniu//
 		});
 		teachersTab = teachers;
-		main();
+		//main();
 	} catch (err) {
 		console.log(err);
 	};
@@ -79,7 +79,7 @@ client.on('interactionCreate', (async (interaction) => {
 			const data = await fetch(`${URL}?nauczyciel=${teacherName}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
-				interaction.reply({ content: 'nauczycziel nie ma lekcji'});
+				interaction.reply({ content: `${teacherName} nie ma lekcji`});
 			} else {
 				let klasy = '';
 				for (let i=0; i<=json[0].klasa.length-1; i++) {
@@ -115,7 +115,7 @@ client.on('interactionCreate', (async (interaction) => {
 			const data = await fetch(`${URL}?sala=${classNum}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
-				interaction.reply({ content: 'w sali nie ma lekcji'});
+				interaction.reply({ content: `w sali ${classNum} nie ma lekcji`});
 			} else {
 				let klasy = '';
 				for (let i=0; i<=json[0].klasa.length-1; i++) {
@@ -129,6 +129,46 @@ client.on('interactionCreate', (async (interaction) => {
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
 				interaction.reply({ content: reply.join('')});
+			};
+		} catch (err) {
+			console.log(err);
+			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
+		};
+	};
+
+	if (interaction.commandName == 'k') {
+		let params = interaction.options.data;
+		let time =fillData(params);
+		let lesson = time.lesson;
+		let day = time.day;
+		let klasa = params[0].value;
+
+		try {
+			if (whichLesson() === 'no lessons' && !(params[1])) {
+				interaction.reply({ content: 'nie ma już zajęć'});
+				return;
+			};
+			const data = await fetch(`${URL}?klasa=${klasa}&czas=${lesson}&day=${day}`);
+			const json = await data.json();
+			if (!json.length) {
+				interaction.reply({ content: `klasa ${klasa} nie ma lekcji`});
+			} else {
+				let reply = [];
+				let i = 0;
+				json.forEach((element) => {
+					let klasy = '';
+					for (let j=0; j<=json[i].klasa.length-1; j++) {
+						klasy += `${json[i].klasa[j]} `;
+					};
+					if (i!=0) reply += '\n';
+					reply += `nauczyciel: **${json[i].nauczyciel}**\n`;
+					reply += `klasa: **${klasy}**\n`;
+					reply += `sala: **${json[i].sala}**\n`;
+					reply += `przedmiot: **${json[i].lekcja}**\n`;
+					i++;
+				});
+				reply += `dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`;
+				interaction.reply({ content: reply});
 			};
 		} catch (err) {
 			console.log(err);
@@ -173,6 +213,32 @@ async function main() {
 				{
 					name: 'sala',
 					description: 'numer sali',
+					type: 3,
+					required: true
+				},
+				{
+					name: 'godzina',
+					description: 'godzina lekcyjna, która cię interesuje',
+					type: 3,
+					required: false,
+					choices: timeTable
+				},
+				{
+					name: 'dzień',
+					description: 'dzień, który cię interesuje',
+					type: 3,
+					required: false,
+					choices: daysTable
+				}
+			]
+		},
+		{
+			name: 'k',
+			description: 'polecenie wyświetli informacje o klasie',
+			options: [
+				{
+					name: 'klasa',
+					description: 'nazwa klasy',
 					type: 3,
 					required: true
 				},
