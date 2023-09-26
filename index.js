@@ -168,7 +168,7 @@ client.on('interactionCreate', (async (interaction) => {
 					i++;
 				});
 				reply += `dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`;
-				interaction.reply({ content: reply});
+				interaction.reply({ content: `${reply}`});
 			};
 		} catch (err) {
 			console.log(err);
