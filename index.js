@@ -31,14 +31,9 @@ async function getTeachers () {
 	try {
 		const data = await fetch(`${URL}nauczyciele`);
 		const json = await data.json();
-		let teachers = []
-		let i = 0;
 		Object.keys(json).forEach(element => {
-			if (!json[element].includes('vacat') && i <= 24) teachers.push( { name: `${json[element]} (${element})`, value: `${json[element]}` });
-			i++; //moze byc maksymalnie 25 wyborow w jednym poleceniu//
+			if (!json[element].includes('vacat') && !json[element].includes('vakat')) teachersTab.push( { name: `${json[element]}`, short: `${element}` });
 		});
-		teachersTab = teachers;
-		//main();
 	} catch (err) {
 		console.log(err);
 	};
@@ -79,7 +74,7 @@ client.on('interactionCreate', (async (interaction) => {
 			const data = await fetch(`${URL}?nauczyciel=${teacherName}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
-				interaction.reply({ content: `${teacherName} nie ma lekcji`});
+				interaction.reply({ content: `nauczyciel nie ma lekcji`});
 			} else {
 				let klasy = '';
 				for (let i=0; i<=json[0].klasa.length-1; i++) {
@@ -128,7 +123,7 @@ client.on('interactionCreate', (async (interaction) => {
 					`przedmiot: **${json[0].lekcja}**\n`,
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
-				interaction.reply({ content: reply.join('')});
+				interaction.reply({ content: `${reply.join('')}`});
 			};
 		} catch (err) {
 			console.log(err);
@@ -168,11 +163,32 @@ client.on('interactionCreate', (async (interaction) => {
 					i++;
 				});
 				reply += `dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`;
-				interaction.reply({ content: `${reply}`});
+				interaction.reply({ content: `${reply}` });
 			};
 		} catch (err) {
 			console.log(err);
 			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
+		};
+	};
+
+	if (interaction.commandName == 'nauczyciele') {
+		try {
+			let reply = '';
+			teachersTab.forEach((element) => {
+				reply += `${element.name} (${element.short})\n`;
+			});
+			interaction.reply({ content: `${reply}` })
+		} catch (err) {
+			console.log(err);
+		};
+	};
+
+	if (interaction.commandName == 'help') {
+		try {
+			let reply = '';
+			interaction.reply({ content: `${reply}.` });
+		} catch (err) {
+			console.log(err);
 		};
 	};
 }));
@@ -181,14 +197,13 @@ async function main() {
 	const commands = [
 		{
 			name: 'n',
-			description: 'polecenie wyświetla informacje o nauczycielu',
+			description: 'Wyświetl informacje o nauczycielu',
 			options: [
 				{
 					name: 'nauczyciel',
-					description: 'imię i nazwisko lub skrót nauczycziela',
+					description: 'nazwisko lub skrót nauczycziela',
 					type: 3,
-					required: true,
-					choices: teachersTab
+					required: true
 				},
 				{
 					name: 'godzina',
@@ -208,7 +223,7 @@ async function main() {
 		},
 		{
 			name: 's',
-			description: 'polecenie wyświetli informacje o sali',
+			description: 'Wyświetl informacje o sali',
 			options: [
 				{
 					name: 'sala',
@@ -234,7 +249,7 @@ async function main() {
 		},
 		{
 			name: 'k',
-			description: 'polecenie wyświetli informacje o klasie',
+			description: 'Wyświetl informacje o klasie',
 			options: [
 				{
 					name: 'klasa',
@@ -257,6 +272,14 @@ async function main() {
 					choices: daysTable
 				}
 			]
+		},
+		{
+			name: 'nauczyciele',
+			description: 'Wyświatl wszystkich nauczycieli'
+		},
+		{
+			name: 'help',
+			description: 'opisuje korzystanie z komend'
 		}
 	];
 
@@ -267,6 +290,8 @@ async function main() {
 		console.log(err);
 	};
 };
+
+//main();
 
 function whatTime () {
 	const date = new Date();
