@@ -136,7 +136,7 @@ client.on('interactionCreate', (async (interaction) => {
 		let time =fillData(params);
 		let lesson = time.lesson;
 		let day = time.day;
-		let klasa = params[0].value;
+		let klasa = (params[0].value).toUpperCase();
 
 		try {
 			if (whichLesson() === 'no lessons' && !(params[1])) {
@@ -178,15 +178,6 @@ client.on('interactionCreate', (async (interaction) => {
 				reply += `${element.name} (${element.short})\n`;
 			});
 			interaction.reply({ content: `${reply}` })
-		} catch (err) {
-			console.log(err);
-		};
-	};
-
-	if (interaction.commandName == 'help') {
-		try {
-			let reply = '';
-			interaction.reply({ content: `${reply}.` });
 		} catch (err) {
 			console.log(err);
 		};
@@ -276,10 +267,6 @@ async function main() {
 		{
 			name: 'nauczyciele',
 			description: 'Wyświatl wszystkich nauczycieli'
-		},
-		{
-			name: 'help',
-			description: 'opisuje korzystanie z komend'
 		}
 	];
 
@@ -291,7 +278,7 @@ async function main() {
 	};
 };
 
-//main();
+main();
 
 function whatTime () {
 	const date = new Date();
