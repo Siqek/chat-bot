@@ -43,7 +43,7 @@ const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent
+		// GatewayIntentBits.MessageContent
 	]
  });
 
@@ -64,17 +64,17 @@ client.on('interactionCreate', (async (interaction) => {
 		let time =fillData(params);
 		let lesson = time.lesson;
 		let day = time.day;
-		let teacherName = params[0].value;
+		let teacherName = prepareTeacherName(params[0].value);
 
 		try {
 			if (whichLesson() === 'no lessons' && !(params[1])) {
-				interaction.reply({ content: 'nie ma już zajęć'});
+				interaction.reply({ content: 'nie ma już zajęć', ephemeral: true });
 				return;
 			};
 			const data = await fetch(`${URL}?nauczyciel=${teacherName}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
-				interaction.reply({ content: `nauczyciel nie ma lekcji`});
+				interaction.reply({ content: `nauczyciel nie ma lekcji`, ephemeral: true });
 			} else {
 				let klasy = '';
 				for (let i=0; i<=json[0].klasa.length-1; i++) {
@@ -87,11 +87,11 @@ client.on('interactionCreate', (async (interaction) => {
 					`przedmiot: **${json[0].lekcja}**\n`,
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
-				interaction.reply({ content: reply.join('')});
+				interaction.reply({ content: reply.join(''), ephemeral: true });
 			};
 		} catch (err) {
 			console.log(err);
-			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
+			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia', ephemeral: true });
 		};
 	};
 
@@ -104,13 +104,13 @@ client.on('interactionCreate', (async (interaction) => {
 		
 		try {
 			if (whichLesson() === 'no lessons' && !(params[1])) {
-				interaction.reply({ content: 'nie ma już zajęć'});
+				interaction.reply({ content: 'nie ma już zajęć', ephemeral: true });
 				return;
 			};
 			const data = await fetch(`${URL}?sala=${classNum}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
-				interaction.reply({ content: `w sali ${classNum} nie ma lekcji`});
+				interaction.reply({ content: `w sali ${classNum} nie ma lekcji`, ephemeral: true });
 			} else {
 				let klasy = '';
 				for (let i=0; i<=json[0].klasa.length-1; i++) {
@@ -123,11 +123,11 @@ client.on('interactionCreate', (async (interaction) => {
 					`przedmiot: **${json[0].lekcja}**\n`,
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
 				];
-				interaction.reply({ content: `${reply.join('')}`});
+				interaction.reply({ content: `${reply.join('')}`, ephemeral: true });
 			};
 		} catch (err) {
 			console.log(err);
-			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
+			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia', ephemeral: true });
 		};
 	};
 
@@ -140,13 +140,13 @@ client.on('interactionCreate', (async (interaction) => {
 
 		try {
 			if (whichLesson() === 'no lessons' && !(params[1])) {
-				interaction.reply({ content: 'nie ma już zajęć'});
+				interaction.reply({ content: 'nie ma już zajęć', ephemeral: true });
 				return;
 			};
 			const data = await fetch(`${URL}?klasa=${klasa}&czas=${lesson}&day=${day}`);
 			const json = await data.json();
 			if (!json.length) {
-				interaction.reply({ content: `klasa ${klasa} nie ma lekcji`});
+				interaction.reply({ content: `klasa ${klasa} nie ma lekcji`, ephemeral: true });
 			} else {
 				let reply = [];
 				let i = 0;
@@ -163,11 +163,11 @@ client.on('interactionCreate', (async (interaction) => {
 					i++;
 				});
 				reply += `dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`;
-				interaction.reply({ content: `${reply}` });
+				interaction.reply({ content: `${reply}`, ephemeral: true });
 			};
 		} catch (err) {
 			console.log(err);
-			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia'});
+			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia', ephemeral: true });
 		};
 	};
 
@@ -177,7 +177,7 @@ client.on('interactionCreate', (async (interaction) => {
 			teachersTab.forEach((element) => {
 				reply += `${element.name} (${element.short})\n`;
 			});
-			interaction.reply({ content: `${reply}` })
+			interaction.reply({ content: `${reply}`, ephemeral: true })
 		} catch (err) {
 			console.log(err);
 		};
@@ -273,6 +273,7 @@ async function main() {
 	try {
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: [] }); //delete all global commands
 		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands }); //deploy global commands
+		console.log('commands have deployed')
 	} catch (err) {
 		console.log(err);
 	};
@@ -328,3 +329,13 @@ function fillData (params) {
 
 	return { day: day, lesson: lesson};
 };
+
+function prepareTeacherName (teacherName) {
+	if (teacherName.length == 2) {
+		return teacherName.toUpperCase();
+	}
+	if (teacherName.includes('.')) {
+		return `${teacherName.substring(0,3).toUpperCase()}${teacherName.substring(3,teacherName.length).toLowerCase()}`;
+	}
+	return `${teacherName.substring(0,1).toUpperCase()}${teacherName.substring(1,teacherName.length).toLowerCase()}`;
+}
