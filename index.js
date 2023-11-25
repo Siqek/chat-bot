@@ -2,6 +2,9 @@ const { Client, Events, GatewayIntentBits, Routes } = require('discord.js');
 const { token, CLIENT_ID, URL } = require('./config.json');
 const { REST } = require('@discordjs/rest');
 
+const NO_LESSON_MESSAGE = 'nie ma już zajęć';
+const ERROR_MESSAGE = 'napotkano błąd podczas wykonywania polecenia';
+
 const timeTable = [
 	{	name: '1. 8:00-8:45', value: '1'},
 	{	name: '2. 8:55-9:40', value: '2'},
@@ -43,7 +46,7 @@ const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMessages,
-		// GatewayIntentBits.MessageContent
+		GatewayIntentBits.MessageContent
 	]
  });
 
@@ -68,7 +71,7 @@ client.on('interactionCreate', (async (interaction) => {
 
 		try {
 			if (whichLesson() === 'no lessons' && !(params[1])) {
-				interaction.reply({ content: 'nie ma już zajęć', ephemeral: true });
+				interaction.reply({ content: NO_LESSON_MESSAGE, ephemeral: true });
 				return;
 			};
 			const data = await fetch(`${URL}?nauczyciel=${teacherName}&czas=${lesson}&day=${day}`);
@@ -86,12 +89,12 @@ client.on('interactionCreate', (async (interaction) => {
 					`sala: **${json[0].sala}**\n`,
 					`przedmiot: **${json[0].lekcja}**\n`,
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
-				];
-				interaction.reply({ content: reply.join(''), ephemeral: true });
+				].join('');
+				interaction.reply({ content: `${reply}`, ephemeral: true });
 			};
 		} catch (err) {
 			console.log(err);
-			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia', ephemeral: true });
+			interaction.reply({ content: ERROR_MESSAGE, ephemeral: true });
 		};
 	};
 
@@ -104,7 +107,7 @@ client.on('interactionCreate', (async (interaction) => {
 		
 		try {
 			if (whichLesson() === 'no lessons' && !(params[1])) {
-				interaction.reply({ content: 'nie ma już zajęć', ephemeral: true });
+				interaction.reply({ content: NO_LESSON_MESSAGE, ephemeral: true });
 				return;
 			};
 			const data = await fetch(`${URL}?sala=${classNum}&czas=${lesson}&day=${day}`);
@@ -122,12 +125,12 @@ client.on('interactionCreate', (async (interaction) => {
 					`sala: **${json[0].sala}**\n`,
 					`przedmiot: **${json[0].lekcja}**\n`,
 					`dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`
-				];
-				interaction.reply({ content: `${reply.join('')}`, ephemeral: true });
+				].join('');
+				interaction.reply({ content: `${reply}`, ephemeral: true });
 			};
 		} catch (err) {
 			console.log(err);
-			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia', ephemeral: true });
+			interaction.reply({ content: ERROR_MESSAGE, ephemeral: true });
 		};
 	};
 
@@ -140,7 +143,7 @@ client.on('interactionCreate', (async (interaction) => {
 
 		try {
 			if (whichLesson() === 'no lessons' && !(params[1])) {
-				interaction.reply({ content: 'nie ma już zajęć', ephemeral: true });
+				interaction.reply({ content: NO_LESSON_MESSAGE, ephemeral: true });
 				return;
 			};
 			const data = await fetch(`${URL}?klasa=${klasa}&czas=${lesson}&day=${day}`);
@@ -148,26 +151,25 @@ client.on('interactionCreate', (async (interaction) => {
 			if (!json.length) {
 				interaction.reply({ content: `klasa ${klasa} nie ma lekcji`, ephemeral: true });
 			} else {
-				let reply = [];
-				let i = 0;
+				let reply = '';
 				json.forEach((element) => {
 					let klasy = '';
-					for (let j=0; j<=json[i].klasa.length-1; j++) {
-						klasy += `${json[i].klasa[j]} `;
+					for (let j=0; j<=element.klasa.length-1; j++) {
+						klasy += `${element.klasa[j]} `;
 					};
-					if (i!=0) reply += '\n';
-					reply += `nauczyciel: **${json[i].nauczyciel}**\n`;
-					reply += `klasa: **${klasy}**\n`;
-					reply += `sala: **${json[i].sala}**\n`;
-					reply += `przedmiot: **${json[i].lekcja}**\n`;
-					i++;
+					reply += `${[
+					`\nnauczyciel: **${element.nauczyciel}**\n`,
+					`klasa: **${klasy}**\n`,
+					`sala: **${element.sala}**\n`,
+					`przedmiot: **${element.lekcja}**\n`
+					].join('')}`;
 				});
 				reply += `dane na ${daysTable[day-1].name}, lekcja: ${timeTable[lesson-1].name}`;
 				interaction.reply({ content: `${reply}`, ephemeral: true });
 			};
 		} catch (err) {
 			console.log(err);
-			interaction.reply({ content: 'napotkano błąd podczas wykonywania polecenia', ephemeral: true });
+			interaction.reply({ content: ERROR_MESSAGE, ephemeral: true });
 		};
 	};
 
@@ -297,17 +299,9 @@ function whichLesson () {
 	let minutes = time.minute + (time.hour * 60);
 
 	for (let i=0; i<=lessons.length-2; i++) {
-		let mins = (lessons[i][0] * 60) + lessons[i][1];
-		let mins2 = (lessons[i+1][0] * 60) + lessons[i+1][1];
-		if (minutes >= mins && minutes < mins2) {
-			let h = lessons[i+1][0];
-			let min = lessons[i+1][1];
-			if ( min >= 45) {
-				min -= 45;
-			}	else {
-				h--;
-				min = 60 + (min - 45);
-			}
+		let lessonStart = (lessons[i][0] * 60) + lessons[i][1];
+		let lessonEnd = (lessons[i+1][0] * 60) + lessons[i+1][1];
+		if (minutes >= lessonStart && minutes < lessonEnd) {
 			return { lesson : i+1, time : `${timeTable[i].name}` };
 		};
 	};
@@ -324,7 +318,9 @@ function fillData (params) {
 			if (params[2]) {
 				day = params[2].value;
 			};
-		};
+		} else {
+			day = params[1].value;
+		}
 	};
 
 	return { day: day, lesson: lesson};
