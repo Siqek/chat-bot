@@ -1,6 +1,9 @@
 const { Client, Events, GatewayIntentBits, Routes } = require('discord.js');
-const { token, CLIENT_ID, URL } = require('./config.json');
 const { REST } = require('@discordjs/rest');
+
+require('dotenv').config();
+const URL = process.env.URL;
+
 
 const NO_LESSON_MESSAGE = 'nie ma już zajęć';
 const ERROR_MESSAGE = 'napotkano błąd podczas wykonywania polecenia';
@@ -50,9 +53,9 @@ const client = new Client({
 	]
  });
 
-const rest = new REST({ version: '10'}).setToken(token);
+const rest = new REST({ version: '10'}).setToken(process.env.TOKEN);
  
-client.login(token);
+client.login(process.env.TOKEN);
 
 client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
@@ -273,8 +276,8 @@ async function main() {
 	];
 
 	try {
-		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: [] }); //delete all global commands
-		await rest.put(Routes.applicationCommands(CLIENT_ID), {	body: commands }); //deploy global commands
+		await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {	body: [] }); //delete all global commands
+		await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {	body: commands }); //deploy global commands
 		console.log('commands have deployed')
 	} catch (err) {
 		console.log(err);
