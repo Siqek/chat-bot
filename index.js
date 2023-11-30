@@ -1,6 +1,23 @@
 const { Client, Events, GatewayIntentBits, Routes } = require('discord.js');
 const { REST } = require('@discordjs/rest');
+
 const NTP = require('ntp-time').Client;
+const clientNTP = new NTP('time.google.com', 123, { timeout: 5000 });
+
+var timeArray = { day: 1, hour: 0, minute: 0}
+
+setInterval(() => {
+	clientNTP
+        .syncTime()
+        .then(res => {
+            let time = new Date(new Date(res.time).toLocaleString("en-US", { timeZone: "Poland" }));
+			timeArray.day = time.getDay();
+			timeArray.hour = time.getHours();
+			timeArray.minute = time.getMinutes();
+        })
+        .catch(console.log);
+	console.log(timeArray)
+}, 1000 * 30)
 
 require('dotenv').config();
 const URL = process.env.URL;
@@ -68,13 +85,13 @@ client.on('interactionCreate', (async (interaction) => {
 
 	if (interaction.commandName == 'n') {
 		let params = interaction.options.data;
-		let time =fillData(params);
+		let time = fillData(params);
 		let lesson = time.lesson;
 		let day = time.day;
 		let teacherName = prepareTeacherName(params[0].value);
 
 		try {
-			if (whichLesson() === 'no lessons' && !(params[1])) {
+			if (whichLesson() === 'no lessons' && (params[1].name != 'godzina' || !(params[1]))) {
 				interaction.reply({ content: NO_LESSON_MESSAGE, ephemeral: true });
 				return;
 			};
@@ -104,13 +121,13 @@ client.on('interactionCreate', (async (interaction) => {
 
 	if (interaction.commandName == 's') {
 		let params = interaction.options.data;
-		let time =fillData(params);
+		let time = fillData(params);
 		let lesson = time.lesson;
 		let day = time.day;
 		let classNum = params[0].value;
 		
 		try {
-			if (whichLesson() === 'no lessons' && !(params[1])) {
+			if (whichLesson() === 'no lessons' && (params[1].name != 'godzina' || !(params[1]))) {
 				interaction.reply({ content: NO_LESSON_MESSAGE, ephemeral: true });
 				return;
 			};
@@ -140,13 +157,13 @@ client.on('interactionCreate', (async (interaction) => {
 
 	if (interaction.commandName == 'k') {
 		let params = interaction.options.data;
-		let time =fillData(params);
+		let time = fillData(params);
 		let lesson = time.lesson;
 		let day = time.day;
 		let klasa = (params[0].value).toUpperCase();
 
 		try {
-			if (whichLesson() === 'no lessons' && !(params[1])) {
+			if (whichLesson() === 'no lessons' && (params[1].name != 'godzina' || !(params[1]))) {
 				interaction.reply({ content: NO_LESSON_MESSAGE, ephemeral: true });
 				return;
 			};
@@ -272,7 +289,7 @@ async function main() {
 		},
 		{
 			name: 'nauczyciele',
-			description: 'Wyświatl wszystkich nauczycieli'
+			description: 'Wyświetl wszystkich nauczycieli'
 		}
 	];
 
@@ -293,17 +310,8 @@ function whatTime () {
 	// let hour = date.getHours();
 	// let minute = date.getMinutes();
 
-	// return { day: day, hour: hour, minute: minute };
-
-	const client = new NTP('time.google.com', 123, { timeout: 5000 });
-
-    client
-        .syncTime()
-        .then(res => {
-            let time = new Date(new Date(res.time).toLocaleString("en-US", { timeZone: "Poland" }));
-            return { day: `${time.getDay()}`, hour: `${time.getHours()}`, minute: `${time.getMinutes()}`}
-        })
-        .catch(console.log);
+	// return { day: day, hour: hour, minute: minute };	
+	return timeArray;
 };
 
 function whichLesson () {
