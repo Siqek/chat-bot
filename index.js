@@ -1,5 +1,6 @@
 const { Client, Events, GatewayIntentBits, Routes } = require('discord.js');
 const { REST } = require('@discordjs/rest');
+const NTP = require('ntp-time').Client;
 
 require('dotenv').config();
 const URL = process.env.URL;
@@ -287,12 +288,22 @@ async function main() {
 main();
 
 function whatTime () {
-	const date = new Date();
-	let day = date.getDay();
-	let hour = date.getHours();
-	let minute = date.getMinutes();
+	// const date = new Date();
+	// let day = date.getDay();
+	// let hour = date.getHours();
+	// let minute = date.getMinutes();
 
-	return { day: day, hour: hour, minute: minute };
+	// return { day: day, hour: hour, minute: minute };
+
+	const client = new NTP('time.google.com', 123, { timeout: 5000 });
+
+    client
+        .syncTime()
+        .then(res => {
+            let time = new Date(new Date(res.time).toLocaleString("en-US", { timeZone: "Poland" }));
+            return { day: `${time.getDay()}`, hour: `${time.getHours()}`, minute: `${time.getMinutes()}`}
+        })
+        .catch(console.log);
 };
 
 function whichLesson () {
