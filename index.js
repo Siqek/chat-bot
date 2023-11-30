@@ -16,7 +16,6 @@ setInterval(() => {
 			timeArray.minute = time.getMinutes();
         })
         .catch(console.log);
-	console.log(timeArray)
 }, 1000 * 30)
 
 require('dotenv').config();
